@@ -16,7 +16,7 @@ namespace Sim
 		{
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new Sim());
+			Application.Run(new SimTest());
 		}
 	}
 }

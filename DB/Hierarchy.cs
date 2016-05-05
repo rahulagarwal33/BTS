@@ -193,7 +193,7 @@ namespace DB
             List<Circle> lst = new List<Circle>();
             try
             {
-                string statement = "SELECT `sitekey`, `site`, `sdca`, `ssa`, `circle` FROM `sites`";
+                string statement = "SELECT * FROM `sites` order by `id`";
                 DataSet data = MySqlHelper.ExecuteDataset(db.connString, statement);
                 foreach (DataRow row in data.Tables[0].Rows)
                 {
@@ -202,6 +202,25 @@ namespace DB
                     SDCA sdca = ssa.insertSDCA(row["sdca"].ToString());
                     Site site = sdca.insertSite(row["site"].ToString());
                     site.key = UInt32.Parse(row["sitekey"].ToString());
+                    site.name = row["site"].ToString();
+                    site.creationTime = DateTime.Parse(row["date_created"].ToString());
+                    site.addr = new Address();
+                    site.addr.addrLine1 = row["address"].ToString();
+                    site.addr.lattitude = double.Parse(row["latitude"].ToString());
+                    site.addr.longitude = double.Parse(row["longitude"].ToString());
+                    site.addr.city = row["city"].ToString();
+                    site.addr.state = row["state"].ToString();
+                    site.addr.pincode = row["pincode"].ToString();
+                    string conn_info = row["conn_info"].ToString();
+                    if(conn_info != "")
+                    {
+                        site.connInfo = new SC.ConnectionInfo();
+                        site.connInfo.read(conn_info);
+                    }
+                    else
+                    {
+                        int k = 1;
+                    }
                 }
             }
             catch (System.Exception e)

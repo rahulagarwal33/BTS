@@ -18,25 +18,34 @@ namespace Sim
 		{
 			InitializeComponent();
 			addDefaultSensors();
+            chkRandomFill.Checked = true;
+            string[] args = Environment.GetCommandLineArgs();
+            if (args.Length > 1)
+            {
+                string file = args[1];
+                connectToSite(file);
+            }
 		}
         ~Sim()
         {
             site = null;
         }
-
+        private void connectToSite(string siteInfoFile)
+        {
+            site = new DB.Site();
+            site.readSite(siteInfoFile);
+            SC.Connection conn = site.createConnection();
+            //conn.connect();
+            conn.Conncted += conn_Conncted;
+            conn.Disconnected += conn_Disconnected;
+            conn.Data += conn_Data;
+            SC.Server listener = site.createListener();
+            listener.Data += listener_Data;
+            listener.listen();
+        }
 		private void connect_Click(object sender, EventArgs e)
 		{
-			site = new DB.Site();
-			site.readSite("site.xml");
-			SC.Connection conn = site.createConnection();
-			//conn.connect();
-			conn.Conncted += conn_Conncted;
-			conn.Disconnected += conn_Disconnected;
-			conn.Data += conn_Data;
-			SC.Server listener = site.createListener();
-			listener.Data += listener_Data;
-			listener.listen();
-
+            connectToSite("site.xml");
 		}
 
 		void listener_Data(SC.StateObject s, byte[] data)

@@ -14,7 +14,7 @@ namespace SC
         {
             XmlNode tcpNode = node.SelectSingleNode("TCP");
             listenPort = Int32.Parse(tcpNode.Attributes["ListenPort"].Value);
-            //ip = tcpNode.Attributes["IP"].Value;
+            ip = tcpNode.Attributes["IP"].Value;
         }
         public void AddToXMLNode(XmlElement elem)
         {
@@ -87,26 +87,30 @@ namespace SC
             XmlNode infoNode = xmlDoc.GetElementsByTagName("ConnectionInfo")[0];
             read(infoNode);
         }
-        public string ToXML()
+        public void write(XmlNode node)
         {
-            XmlDocument xmlDoc = new XmlDocument();
-            XmlElement connInfoElem = xmlDoc.CreateElement("ConnectionInfo");
-            xmlDoc.AppendChild(connInfoElem);
+            XmlDocument xmlDoc = node.OwnerDocument;
             XmlElement clientConnInfoElem = xmlDoc.CreateElement("Client");
             clientConnInfo.AddToXMLNode(clientConnInfoElem);
             XmlElement serverConnInfoElem = xmlDoc.CreateElement("Server");
             serverConnInfo.AddToXMLNode(serverConnInfoElem);
-            connInfoElem.AppendChild(serverConnInfoElem);
-            connInfoElem.AppendChild(clientConnInfoElem);
+            node.AppendChild(serverConnInfoElem);
+            node.AppendChild(clientConnInfoElem);
 
             XmlElement keyElem = xmlDoc.CreateElement("Key");
             XmlAttribute attrib1 = xmlDoc.CreateAttribute("Own");
             attrib1.Value = ownkey.ToString(); keyElem.Attributes.Append(attrib1);
             XmlAttribute attrib2 = xmlDoc.CreateAttribute("Remote");
             attrib2.Value = remoteKey.ToString(); keyElem.Attributes.Append(attrib2);
-            connInfoElem.AppendChild(keyElem);
+            node.AppendChild(keyElem);
+        }
+        public string ToXML()
+        {
+            XmlDocument xmlDoc = new XmlDocument();
+            XmlElement connInfoElem = xmlDoc.CreateElement("ConnectionInfo");
+            write(connInfoElem);
+            xmlDoc.AppendChild(connInfoElem);
 
-            xmlDoc.ToString();
             StringWriter writer = new StringWriter();
             XmlWriter writerXML = XmlWriter.Create(writer);
             xmlDoc.WriteTo(writerXML);

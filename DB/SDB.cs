@@ -26,7 +26,6 @@ namespace DB
 		private string dbname;
 		public SC.Server connListner;
         private SC.ConnectionInfo connInfo;
-		//private MySqlConnection conn = new MySqlConnection();
         public string connString;
         public List<Circle> lstCircles;
 		public SDB()
@@ -62,32 +61,15 @@ namespace DB
 
 			return connListner;
 		}
-        Site getSite(string key)
-        {
-            foreach (Circle c in lstCircles)
-            {
-                foreach (SSA ssa in c.vecSSA)
-                {
-                    foreach (SDCA sdca in ssa.vecSDCA)
-                    {
-                        foreach (Site site in sdca.vecSites)
-                        {
-                            if (site.id == key)
-                                return site;
-                        }
-                    }
-                }
-            }
-            return null;
-        }
-	    int getSiteId(string key)
+
+	    int getSiteId(UInt32 key)
 	    {
             List<MySqlParameter> paramList = new List<MySqlParameter>();
-            paramList.Add(new MySqlParameter("@SiteId", key));
+            paramList.Add(new MySqlParameter("@SiteKey", key));
             int id = -1;
             try
             {
-                object ret = MySqlHelper.ExecuteScalar(connString, "SELECT id From sites WHERE siteid = @SiteId", paramList.ToArray());
+                object ret = MySqlHelper.ExecuteScalar(connString, "SELECT id From sites WHERE sitekey = @SiteKey", paramList.ToArray());
                 if (ret != null)
                 {
                     id = Convert.ToInt32(ret);
@@ -157,22 +139,29 @@ namespace DB
             {
                 //search for the site with key as data
                 //s.obj = getSite(data);
-				s.obj = getSiteId(System.Text.Encoding.UTF8.GetString(data));
+                string str = System.Text.Encoding.UTF8.GetString(data);
+                UInt32 key = 0; 
+                if(UInt32.TryParse(str, out key))
+				    s.obj = getSiteId(key);
             }
 		}
 		public bool connect()
 		{
             connString = "SERVER=" + server + ";DATABASE=" + dbname + ";UID=" + user + ";PASSWORD=" + passwd + ";";
             addSiteRawDataQuery.connString = connString;
+            //addSiteRawDataQuery.statement = "INSERT INTO sites_data(siteid, data, timestamp)";
             addSiteRawDataQuery.statement = "INSERT INTO sites_data(siteid, data, timestamp) VALUE({0}, {1}, {2});";
 
             addSiteSensorDataQuery.connString = connString;
+            //addSiteSensorDataQuery.statement = "INSERT INTO sensors_Data(sensorid, siteid, value, timestamp)";
             addSiteSensorDataQuery.statement = "INSERT INTO sensors_Data(sensorid, siteid, value, timestamp) VALUE({0}, {1}, {2}, {3});";
 
             addSitesQuery.connString = connString;
-			addSitesQuery.statement = "INSERT INTO sites(sitekey, site, sdca, ssa, circle, address, city, state, pincode, latitude, longitude, date_created) VALUE({0}, {1}, {3}, {4}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11});";
+            //addSitesQuery.statement = "INSERT INTO sites(sitekey, site, sdca, ssa, circle, address, city, state, pincode, latitude, longitude, date_created)";
+            addSitesQuery.statement = "INSERT INTO sites(sitekey, site, sdca, ssa, circle, address, city, state, pincode, latitude, longitude, date_created) VALUE({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11});";
 
-			createConnInfoQuery.connString = connString;
+
+            createConnInfoQuery.connString = connString;
             createConnInfoQuery.statement = "UPDATE sites SET conn_info={0} WHERE sitekey={1};";
                 
             return true;
@@ -206,18 +195,18 @@ namespace DB
             }
             previousSiteKey = siteKey;
         }
-        public void createConnectionInfo(UInt32 sitekey, SC.ConnectionInfo connInfo)
+        public void createConnectionInfo(UInt32 sitekey, SC.ConnectionInfo lastConnInfo)
         {
             try
             {
-				connInfo.ownkey = sitekey.ToString();
-				connInfo.remoteKey = "12345";
-				string connInfoStr = connInfo.ToXML();
-				string statement = "UPDATE sites SET conn_info=" + connInfoStr  + " WHERE sitekey=" + sitekey;
+                lastConnInfo.ownkey = sitekey.ToString();
+                lastConnInfo.remoteKey = "12345";
+                string connInfo = lastConnInfo.ToXML();
+                string statement = "UPDATE sites SET conn_info=" + connInfo + " WHERE sitekey=" + sitekey;
                 List<MySqlParameter> param = new List<MySqlParameter>();
-				param.Add(new MySqlParameter("@ConnInfo", connInfoStr));
-				param.Add(new MySqlParameter("@SiteKey", sitekey));
-				createConnInfoQuery.addValues(param);
+                param.Add(new MySqlParameter("@ConnInfo", connInfo));
+                param.Add(new MySqlParameter("@SiteKey", sitekey));
+                createConnInfoQuery.addValues(param);
             }
             catch (Exception e)
             {
@@ -244,7 +233,7 @@ namespace DB
                     site.addr.state = row["state"].ToString();
                     site.addr.pincode = row["pincode"].ToString();
                     site.connInfo = new SC.ConnectionInfo();
-                    site.connInfo.read(row["connection_info"].ToString());
+                    site.connInfo.read(row["conn_info"].ToString());
                 }
             }
             catch (Exception e)

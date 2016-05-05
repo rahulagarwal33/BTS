@@ -30,14 +30,10 @@ namespace DB
                 }
                 listValues.Add(listParam);
                 if (listValues.Count > maxBatchSize)
-                    execute();
+                    execute1();
             }
         }
-		public void flush()
-		{
-			execute();
-		}
-        public void execute()
+        public void execute1()
         {
             lock (sync)
             {
@@ -62,6 +58,49 @@ namespace DB
                 try
                 {
                     int ret = MySqlHelper.ExecuteNonQuery(connString, result,
+                        finalList.ToArray());
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show(e.Message + "\r\n" + e.StackTrace);
+                }
+                listValues.Clear();
+            }
+        }
+        public void execute()
+        {
+            lock (sync)
+            {
+                StringBuilder builder = new StringBuilder(statement + " VALUES");
+                List<MySqlParameter> finalList = new List<MySqlParameter>();
+                int cnt = 0;
+                int i = 0;
+                foreach (List<MySqlParameter> listParam in listValues)
+                {
+                    builder.AppendFormat("(");
+                    int j = 0;
+                    foreach(MySqlParameter param in listParam)
+                    {
+                        string paramName = "@Param" + cnt;
+                        param.ParameterName = paramName;
+                        finalList.Add(param);
+                        if (j != listParam.Count - 1)
+                            builder.Append(paramName + ", ");
+                        else
+                            builder.Append(paramName);
+                        ++j;
+                        ++cnt;
+                    }
+                    if (i != listValues.Count - 1)
+                        builder.AppendFormat("), ");
+                    else
+                        builder.AppendFormat(");");
+                    ++i;
+                }
+                string str = builder.ToString();
+                try
+                {
+                    int ret = MySqlHelper.ExecuteNonQuery(connString, str,
                         finalList.ToArray());
                 }
                 catch (Exception e)

@@ -16,14 +16,27 @@ namespace TOC
 	{
 		List<DB.Circle> lstCircles;
 		TOC toc;
+        ContextMenu cm = new ContextMenu();
 		public Hierarchy(TOC toc)
 		{
 			this.toc = toc;
 			InitializeComponent();
-            ContextMenu cm = new ContextMenu();
-            cm.MenuItems.Add("Generate");
-            this.ContextMenu = cm;
+            cm.MenuItems.Add("Generate Connection Info", new EventHandler(onGenerateConnectionInfo));
+            cm.MenuItems.Add("Generate Sites", new EventHandler(onGenerateSites));
+//             this.ContextMenu = cm;
 		}
+        void onGenerateConnectionInfo(object o, EventArgs e)
+        {
+            TreeNode node = treeCtrl.SelectedNode;
+            SC.ConnectionInfo connInfo = initializeConnInfo(getIP(1), 8000);
+            generateConnInfo(node, connInfo);
+        }
+        void onGenerateSites(object o, EventArgs e)
+        {
+            TreeNode node = treeCtrl.SelectedNode;
+            if(node != null)
+                generateSites(node, "");
+        }
         string getIP(int ip)
         {
             string ipStr = "10.10.0." + ip;
@@ -46,6 +59,24 @@ namespace TOC
             connInfo.serverConnInfo.listenPort = port;
             connInfo.serverConnInfo.ip = ip;
             return connInfo;
+        }
+        public void generateSites(TreeNode node, string file)
+        {
+            if (node.Nodes.Count == 0)
+            {
+                DB.Site s = (DB.Site)node.Tag;
+                s.writeSite("sites\\" + file + ".xml");
+            }
+            else
+            {
+                int level = node.Level;
+                int cnt = 0;
+                foreach (TreeNode n in node.Nodes)
+                {
+                    generateSites(n, file + cnt);
+                    ++cnt;
+                }
+            }
         }
         public void generateConnInfo(TreeNode node, SC.ConnectionInfo connInfo)
         {
@@ -118,8 +149,9 @@ namespace TOC
                 TreeNode node = treeCtrl.GetNodeAt(p);
                 if (node != null)
                 {
-                    SC.ConnectionInfo connInfo = initializeConnInfo(getIP(1), 8000);
-                    generateConnInfo(node, connInfo);
+                    cm.Show(treeCtrl, p);
+                    //SC.ConnectionInfo connInfo = initializeConnInfo(getIP(1), 8000);
+                    //generateConnInfo(node, connInfo);
                 }
             }
         }
