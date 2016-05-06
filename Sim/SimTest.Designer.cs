@@ -37,6 +37,7 @@
             this.ClientSize = new System.Drawing.Size(284, 262);
             this.Name = "SimTest";
             this.Text = "SimTest";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SimTest_FormClosing);
             this.Load += new System.EventHandler(this.SimTest_Load);
             this.ResumeLayout(false);
 

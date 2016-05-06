@@ -14,11 +14,13 @@ namespace Sim
     public partial class SimTest : Form
     {
         List<DB.Site> lstSites = new List<DB.Site>();
+        List<Thread> lstThreads = new List<Thread>();
         Random rnd = new Random();
 
         public SimTest()
         {
             InitializeComponent();
+ 
         }
         private List<byte> buildAllSensorData()
         {
@@ -53,15 +55,72 @@ namespace Sim
             foreach (string f in files)
             {
                 DB.Site site = new DB.Site();
+                lstSites.Add(site);
                 site.readSite(f);
                 site.createConnection();
+                site.conn.Conncted += new SC.Connection.ConnectionEventHandler(conn_Conncted);
+                site.conn.Disconnected += new SC.Connection.ConnectionEventHandler(conn_Disconnected);
+                site.conn.Data += new SC.Connection.DataHandler(conn_Data);
                 Thread t = new Thread(()=> runSite(site));
+                lstThreads.Add(t);
                 t.Start();
+
+                BeginInvoke((Action<int>)((int cnt) =>
+                {
+                    this.Text = "Total Sites: " + cnt;
+                }), lstSites.Count);
+
+                Thread.Sleep((int)(rnd.NextDouble() * 1000));
             }
+        }
+
+        void conn_Data(object sender, byte[] data)
+        {
+            
+        }
+
+        void conn_Disconnected(object sender, EventArgs e)
+        {
+            
+        }
+
+        void conn_Conncted(object sender, EventArgs e)
+        {
+            
         }
         private void SimTest_Load(object sender, EventArgs e)
         {
-            loadSites("sts");
+            Thread t = new Thread(() => loadSites("sts"));
+            t.Start();
+        }
+
+        private void SimTest_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            foreach (Thread t in lstThreads)
+            {
+                try
+                {
+                    t.Abort();
+                }
+                catch (Exception e1)
+                {
+
+                }
+            }
+            foreach (DB.Site s in lstSites)
+            {
+                try
+                {
+                    if (s.conn != null)
+                    {
+                        s.conn.disconnect();
+                    }
+                }
+                catch (Exception e1)
+                {
+
+                }
+            }
         }
     }
 }

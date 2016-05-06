@@ -21,15 +21,17 @@ namespace SC
 		//Authenticated status
 		public bool authenticated = false;
         public Object obj;
+        public DateTime lastDataReceived;
         public StateObject()
         {
             msg = new TCPMessage(this);
+            lastDataReceived = DateTime.Now;
         }
 	}
 	public class Connection
 	{
 		public delegate void ConnectionEventHandler(object sender, EventArgs e);
-		public delegate void DataHandler(byte[] data);
+		public delegate void DataHandler(object sender, byte[] data);
         private static ManualResetEvent connectedEvent = new ManualResetEvent(false);
         public ConnectionInfo connInfo { get; set; }
 		public enum Status
@@ -82,7 +84,7 @@ namespace SC
 
         void msg_MessageComplete(StateObject stOb, byte[] msg)
         {
-            Data(msg);
+            Data(this, msg);
         }
 		private void ConnectCallback(IAsyncResult ar)
 		{
@@ -109,7 +111,7 @@ namespace SC
 			catch (Exception e)
 			{
 				Thread.Sleep(1000);
-				 connect();
+				connect();
 				Console.WriteLine(e.ToString());
 			}
 		}
@@ -127,6 +129,7 @@ namespace SC
 
 				if (bytesRead > 0)
 				{
+                    state.lastDataReceived = DateTime.Now;
                     state.msg.addBytes(state.buffer, 0, bytesRead);
 
 					// Get the rest of the data.
@@ -136,12 +139,6 @@ namespace SC
 				else
 				{
                     disconnect();
-/*
-                    // Signal that all bytes have been received.
-					//issue another receive request
-					client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-					new AsyncCallback(ReceiveCallback), state);
-*/
 				}
 			}
 			catch (Exception e)
@@ -169,7 +166,7 @@ namespace SC
             }
             catch (Exception e)
             {
-                 MessageBox.Show(e.Message + "\r\n" + e.StackTrace);
+                 //MessageBox.Show(e.Message + "\r\n" + e.StackTrace);
             }
 		}
 
@@ -205,13 +202,17 @@ namespace SC
 				StateObject s = socketState;
 				socketState = null;
 				Disconnected(this, null);
-				s.workSocket.Shutdown(SocketShutdown.Both);
-                s.workSocket.Close();
-                s.workSocket = null;
+                if(s.workSocket != null)
+                {
+                    s.workSocket.Shutdown(SocketShutdown.Both);
+                    s.workSocket.Close();
+                    s.workSocket = null;
+                }
                 s = null;
 			}
 		}
-		public event ConnectionEventHandler Conncted;
+
+        public event ConnectionEventHandler Conncted;
 		public event ConnectionEventHandler Disconnected;
 		public event DataHandler Data;
 

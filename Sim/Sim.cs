@@ -62,7 +62,7 @@ namespace Sim
 
         }
 
-		void conn_Data(byte[] data)
+		void conn_Data(object sender, byte[] data)
 		{
             if(this.InvokeRequired)
             {

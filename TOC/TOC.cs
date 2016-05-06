@@ -90,7 +90,19 @@ namespace TOC
         private void TOC_FormClosed(object sender, FormClosedEventArgs e)
         {
             if(db != null && db.connListner != null)
+            {
+                db.addSiteSensorDataQuery.executeInsert();
+                db.addSiteRawDataQuery.executeInsert();
                 db.connListner.shutDown();
+            }
+        }
+
+        private void timerStatus_Tick(object sender, EventArgs e)
+        {
+            if(db.listener() != null)
+            {
+                this.Text = "Active Connection: " + db.listener().countStates() + " Pending Queries1: "+ db.addSiteRawDataQuery.count() + " Pending Queries2: " + db.addSiteSensorDataQuery.count();
+            }
         }
 	}
 }

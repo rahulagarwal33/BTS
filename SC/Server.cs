@@ -13,6 +13,9 @@ namespace SC
 	{
 		private static ManualResetEvent allDone = new ManualResetEvent(false);
 		private Thread listnerThread;
+        private Thread cleanupThread;
+        private object syncObj = new object();
+        private bool bShuttingDown = false;
 		public ConnectionInfo connInfo { get; set; }
 		public delegate void DataEvent(StateObject s, byte[] data);
 		public event DataEvent Data;
@@ -21,6 +24,7 @@ namespace SC
         Socket listener;
         public void shutDown()
         {
+            bShuttingDown = true;
             if (isListening)
             {
                 foreach (StateObject st in lstStates)
@@ -89,14 +93,20 @@ namespace SC
 			StateObject state = new StateObject();
             state.msg.MessageComplete += msg_MessageComplete;
 			state.workSocket = handler;
-			lstStates.Add(state);
+            lock(syncObj)
+            {
+                lstStates.Add(state);
+            }
 			handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
 				new AsyncCallback(ReadCallback), state);
 		}
-
+        public int countStates()
+        {
+            return lstStates.Count;
+        }
         void msg_MessageComplete(StateObject st, byte[] msg)
         {
-            if(st.authenticated )
+            if(st.authenticated)
             {
                 Data(st, msg);
             }
@@ -128,6 +138,7 @@ namespace SC
 
                 if (bytesRead > 0)
                 {
+                    state.lastDataReceived = DateTime.Now;
                     state.msg.addBytes(state.buffer, 0, bytesRead);
                     // There  might be more data, so store the data received so far.
 
@@ -137,7 +148,10 @@ namespace SC
                 }
                 else
                 {
-                    lstStates.Remove(state);
+                    lock(syncObj)
+                    {
+                        lstStates.Remove(state);
+                    }
                     state = null;
                 }
             }
@@ -169,7 +183,13 @@ namespace SC
 		{
 			listnerThread = new Thread(startListening);
 			listnerThread.Start();
+            startCleanup();
 		}
+        public void startCleanup()
+        {
+            cleanupThread = new Thread(cleanup);
+            cleanupThread.Start();
+        }
 		public void Send(Socket handler, byte[] data)
 		{
 			// Convert the string data to byte data using ASCII encoding.
@@ -195,6 +215,41 @@ namespace SC
 
 			}
 		}
+        private void cleanup()
+        {
+            while (!bShuttingDown)
+            {
+                lock(syncObj)
+                {
+                    DateTime currTime = DateTime.Now;
+                    TimeSpan delta = TimeSpan.FromSeconds(10);
+                    List<StateObject> lstRemovedState = new List<StateObject>();
+                    foreach (StateObject state in lstStates)
+                    {
+                        if (currTime - state.lastDataReceived > delta)
+                        {
+                            try
+                            {
+                                state.workSocket.Shutdown(SocketShutdown.Both);
+                                state.workSocket.Close();
+                                state.workSocket = null;
+                                lstRemovedState.Add(state);
+                            }
+                            catch (System.Exception ex)
+                            {
+
+                            }
+                        }
+                    }
+                    foreach (StateObject state in lstRemovedState)
+                    {
+                        lstStates.Remove(state);
+                    }
+                    lstRemovedState.Clear();
+                }
+                Thread.Sleep(10000);
+            }
+        }
 	}
 
 }

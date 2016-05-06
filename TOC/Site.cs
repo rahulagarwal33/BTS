@@ -58,7 +58,7 @@ namespace TOC
             else
                 txtServerReceiveData.Text += data + "\r\n";
         }
-        void conn_Data(byte[] data)
+        void conn_Data(object sender, byte[] data)
         {
             if(this.InvokeRequired)
             {

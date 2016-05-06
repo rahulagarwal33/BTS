@@ -12,13 +12,13 @@ namespace DB
         public string connString { get; set; }
         public string statement { get; set; }
         public int maxBatchSize { get; set; }
-
+        public bool queryType = true;   //insert
         object sync = new object();
         List<List<MySqlParameter>> listValues = new List<List<MySqlParameter>>();
 
         public BatchQuery()
         {
-            maxBatchSize = 100;
+            maxBatchSize = 1000;
         }
         public void addValues(List<MySqlParameter> listParam)
         {
@@ -29,93 +29,140 @@ namespace DB
                     int k = 1;
                 }
                 listValues.Add(listParam);
+/*
                 if (listValues.Count > maxBatchSize)
                     execute1();
+*/
             }
         }
-        public void execute1()
+        public void executeUpdate()
         {
+            List<List<MySqlParameter>> listLocalValues = new List<List<MySqlParameter>>();
             lock (sync)
             {
-                int cnt = 0;
-                string result = "";
-                List<MySqlParameter> finalList = new List<MySqlParameter>();
-                foreach (List<MySqlParameter> listParam in listValues)
+                listLocalValues.AddRange(listValues.ToArray());
+                listValues.Clear();
+            }
+            
+            int cnt = 0;
+            string result = "";
+            List<MySqlParameter> finalList = new List<MySqlParameter>();
+            foreach (List<MySqlParameter> listParam in listLocalValues)
+            {
+                List<string> pList = new List<string>();    
+                foreach(MySqlParameter p in listParam)
                 {
-                    List<string> pList = new List<string>();    
-                    foreach(MySqlParameter p in listParam)
-                    {
-                        string paramName = "@Param" + cnt;
-                        pList.Add(paramName);
-                        p.ParameterName = paramName;
-                        finalList.Add(p);
-                        ++cnt;
-                    }
-
-                    string current = String.Format(statement, pList.ToArray());
-                    result += current + "\r\n";
+                    string paramName = "@Param" + cnt;
+                    pList.Add(paramName);
+                    p.ParameterName = paramName;
+                    finalList.Add(p);
+                    ++cnt;
                 }
-                try
+                string current = String.Format(statement, pList.ToArray());
+                result += current + "\r\n";
+                if (cnt > 100)
+                {
+                    try
+                    {
+                        if (result != "")
+                        {
+                            int ret = MySqlHelper.ExecuteNonQuery(connString, result,
+                                finalList.ToArray());
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        MessageBox.Show(e.Message + "\r\n" + e.StackTrace);
+                    }
+                    cnt = 0;
+                    result = "";
+                    finalList.Clear();
+                }
+            }
+            try
+            {
+                if(result != "")
                 {
                     int ret = MySqlHelper.ExecuteNonQuery(connString, result,
                         finalList.ToArray());
                 }
-                catch (Exception e)
-                {
-                    MessageBox.Show(e.Message + "\r\n" + e.StackTrace);
-                }
-                listValues.Clear();
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message + "\r\n" + e.StackTrace);
             }
         }
-        public void execute()
+        public void executeInsert()
         {
+            List<List<MySqlParameter>> listLocalValues = new List<List<MySqlParameter>>();
             lock (sync)
             {
-                StringBuilder builder = new StringBuilder(statement + " VALUES");
-                List<MySqlParameter> finalList = new List<MySqlParameter>();
-                int cnt = 0;
-                int i = 0;
-                foreach (List<MySqlParameter> listParam in listValues)
-                {
-                    builder.AppendFormat("(");
-                    int j = 0;
-                    foreach(MySqlParameter param in listParam)
-                    {
-                        string paramName = "@Param" + cnt;
-                        param.ParameterName = paramName;
-                        finalList.Add(param);
-                        if (j != listParam.Count - 1)
-                            builder.Append(paramName + ", ");
-                        else
-                            builder.Append(paramName);
-                        ++j;
-                        ++cnt;
-                    }
-                    if (i != listValues.Count - 1)
-                        builder.AppendFormat("), ");
-                    else
-                        builder.AppendFormat(");");
-                    ++i;
-                }
-                string str = builder.ToString();
-                try
-                {
-                    int ret = MySqlHelper.ExecuteNonQuery(connString, str,
-                        finalList.ToArray());
-                }
-                catch (Exception e)
-                {
-                    MessageBox.Show(e.Message + "\r\n" + e.StackTrace);
-                }
+                listLocalValues.AddRange(listValues.ToArray());
                 listValues.Clear();
             }
+            StringBuilder builder = new StringBuilder(statement + " VALUES");
+            List<MySqlParameter> finalList = new List<MySqlParameter>();
+            int cnt = 0;
+            foreach (List<MySqlParameter> listParam in listLocalValues)
+            {
+                if (cnt != 0)
+                {
+                    builder.AppendFormat("), ");
+                }
+                builder.AppendFormat("(");
+                int j = 0;
+                foreach(MySqlParameter param in listParam)
+                {
+                    string paramName = "@Param" + cnt;
+                    param.ParameterName = paramName;
+                    finalList.Add(param);
+                    if (j != listParam.Count - 1)
+                        builder.Append(paramName + ", ");
+                    else
+                        builder.Append(paramName);
+                    ++j;
+                    ++cnt;
+                }
+                if (cnt > 500)
+                {
+                    builder.AppendFormat(");");
+                    string str = builder.ToString();
+                    try
+                    {
+                        if(finalList.Count != 0)
+                        {
+                            int ret = MySqlHelper.ExecuteNonQuery(connString, str,
+                                finalList.ToArray());
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        MessageBox.Show(e.Message + "\r\n" + e.StackTrace);
+                    }
+                    finalList.Clear();
+                    builder = new StringBuilder(statement + " VALUES");
+                    cnt = 0;
+                }
+            }
+            try
+            {
+                if(finalList.Count != 0)
+                {
+                    builder.AppendFormat(");");
+                    string str1 = builder.ToString();
+                    int ret = MySqlHelper.ExecuteNonQuery(connString, str1,
+                        finalList.ToArray());
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message + "\r\n" + e.StackTrace);
+            }
+            listLocalValues.Clear();
         }
         public int count()
         {
-            lock (sync)
-            {
-                return listValues.Count;
-            }
+            return listValues.Count;
         }
     }
 }

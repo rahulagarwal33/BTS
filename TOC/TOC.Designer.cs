@@ -28,12 +28,14 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
+            this.components = new System.ComponentModel.Container();
             this.pnlMain = new WeifenLuo.WinFormsUI.Docking.DockPanel();
             this.mnuMain = new System.Windows.Forms.MenuStrip();
             this.menToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.hierarchyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.propertyViewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.logViewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.timerStatus = new System.Windows.Forms.Timer(this.components);
             this.mnuMain.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -89,6 +91,11 @@
             this.logViewToolStripMenuItem.Click += new System.EventHandler(this.logViewToolStripMenuItem_Click);
             this.logViewToolStripMenuItem.Paint += new System.Windows.Forms.PaintEventHandler(this.logViewToolStripMenuItem_Paint);
             // 
+            // timerStatus
+            // 
+            this.timerStatus.Enabled = true;
+            this.timerStatus.Tick += new System.EventHandler(this.timerStatus_Tick);
+            // 
             // TOC
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -116,6 +123,7 @@
 		private System.Windows.Forms.ToolStripMenuItem hierarchyToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem propertyViewToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem logViewToolStripMenuItem;
+        private System.Windows.Forms.Timer timerStatus;
 	}
 }
 

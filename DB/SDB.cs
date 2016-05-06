@@ -9,15 +9,16 @@ using System.Xml;
 using System.IO;
 using System.Data.SqlClient;
 using System.Data;
+using System.Threading;
 
 namespace DB
 {
 	public class SDB
 	{
-        private BatchQuery createConnInfoQuery = new BatchQuery();
-        private BatchQuery addSitesQuery = new BatchQuery();
-        private BatchQuery addSiteRawDataQuery = new BatchQuery();
-        private BatchQuery addSiteSensorDataQuery = new BatchQuery();
+        public BatchQuery createConnInfoQuery = new BatchQuery();
+        public BatchQuery addSitesQuery = new BatchQuery();
+        public BatchQuery addSiteRawDataQuery = new BatchQuery();
+        public BatchQuery addSiteSensorDataQuery = new BatchQuery();
 
         private static string previousSiteKey;
 		private string server;
@@ -28,8 +29,11 @@ namespace DB
         private SC.ConnectionInfo connInfo;
         public string connString;
         public List<Circle> lstCircles;
+        bool bShutdown = false;
 		public SDB()
 		{
+            Thread t = new Thread(runExecuteQueryThread);
+            t.Start();
 		}
         public void read(string infoFile)
         {
@@ -50,6 +54,15 @@ namespace DB
             //lstCircles = Hierarchy.buildHierarchy("Data/circles");
             lstCircles = Hierarchy.buildHierarchyFromDB(this);
         }
+        void runExecuteQueryThread()
+        {
+            while (!bShutdown)
+            {
+                addSiteSensorDataQuery.executeInsert();
+                addSiteRawDataQuery.executeInsert();
+                System.Threading.Thread.Sleep(1000);
+            }
+        }
 		public SC.Server createListener()
 		{
 			if (connListner == null)
@@ -61,7 +74,11 @@ namespace DB
 
 			return connListner;
 		}
-
+        public SC.Server listener()
+        {
+            return connListner;
+        }
+        
 	    int getSiteId(UInt32 key)
 	    {
             List<MySqlParameter> paramList = new List<MySqlParameter>();
@@ -149,16 +166,16 @@ namespace DB
 		{
             connString = "SERVER=" + server + ";DATABASE=" + dbname + ";UID=" + user + ";PASSWORD=" + passwd + ";";
             addSiteRawDataQuery.connString = connString;
-            //addSiteRawDataQuery.statement = "INSERT INTO sites_data(siteid, data, timestamp)";
-            addSiteRawDataQuery.statement = "INSERT INTO sites_data(siteid, data, timestamp) VALUE({0}, {1}, {2});";
+            addSiteRawDataQuery.statement = "INSERT INTO sites_data(siteid, data, timestamp)";
+            //addSiteRawDataQuery.statement = "INSERT INTO sites_data(siteid, data, timestamp) VALUE({0}, {1}, {2});";
 
             addSiteSensorDataQuery.connString = connString;
-            //addSiteSensorDataQuery.statement = "INSERT INTO sensors_Data(sensorid, siteid, value, timestamp)";
-            addSiteSensorDataQuery.statement = "INSERT INTO sensors_Data(sensorid, siteid, value, timestamp) VALUE({0}, {1}, {2}, {3});";
+            addSiteSensorDataQuery.statement = "INSERT INTO sensors_Data(sensorid, siteid, value, timestamp)";
+            //addSiteSensorDataQuery.statement = "INSERT INTO sensors_Data(sensorid, siteid, value, timestamp) VALUE({0}, {1}, {2}, {3});";
 
             addSitesQuery.connString = connString;
-            //addSitesQuery.statement = "INSERT INTO sites(sitekey, site, sdca, ssa, circle, address, city, state, pincode, latitude, longitude, date_created)";
-            addSitesQuery.statement = "INSERT INTO sites(sitekey, site, sdca, ssa, circle, address, city, state, pincode, latitude, longitude, date_created) VALUE({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11});";
+            addSitesQuery.statement = "INSERT INTO sites(sitekey, site, sdca, ssa, circle, address, city, state, pincode, latitude, longitude, date_created)";
+            //addSitesQuery.statement = "INSERT INTO sites(sitekey, site, sdca, ssa, circle, address, city, state, pincode, latitude, longitude, date_created) VALUE({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11});";
 
 
             createConnInfoQuery.connString = connString;
