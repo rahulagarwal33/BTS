@@ -29,14 +29,27 @@ namespace DB
                     int k = 1;
                 }
                 listValues.Add(listParam);
-/*
-                if (listValues.Count > maxBatchSize)
-                    execute1();
-*/
             }
         }
+		void executeSqlQuery(string command, List<MySqlParameter> listParam)
+		{
+			try
+			{
+				if (command != "")
+				{
+					int ret = MySqlHelper.ExecuteNonQuery(connString, command,
+						listParam.ToArray());
+				}
+			}
+			catch (Exception e)
+			{
+				MessageBox.Show(e.Message + "\r\n" + e.StackTrace);
+			}
+		}
         public void executeUpdate()
         {
+			if (listValues.Count < maxBatchSize)
+				return;
             List<List<MySqlParameter>> listLocalValues = new List<List<MySqlParameter>>();
             lock (sync)
             {
@@ -60,40 +73,20 @@ namespace DB
                 }
                 string current = String.Format(statement, pList.ToArray());
                 result += current + "\r\n";
-                if (cnt > 100)
+				if (cnt > maxBatchSize)
                 {
-                    try
-                    {
-                        if (result != "")
-                        {
-                            int ret = MySqlHelper.ExecuteNonQuery(connString, result,
-                                finalList.ToArray());
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        MessageBox.Show(e.Message + "\r\n" + e.StackTrace);
-                    }
+					executeSqlQuery(result, finalList);
                     cnt = 0;
                     result = "";
                     finalList.Clear();
                 }
             }
-            try
-            {
-                if(result != "")
-                {
-                    int ret = MySqlHelper.ExecuteNonQuery(connString, result,
-                        finalList.ToArray());
-                }
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message + "\r\n" + e.StackTrace);
-            }
+			executeSqlQuery(result, finalList);
         }
         public void executeInsert()
         {
+			if (listValues.Count < maxBatchSize)
+				return;
             List<List<MySqlParameter>> listLocalValues = new List<List<MySqlParameter>>();
             lock (sync)
             {
@@ -127,38 +120,19 @@ namespace DB
                 {
                     builder.AppendFormat(");");
                     string str = builder.ToString();
-                    try
-                    {
-                        if(finalList.Count != 0)
-                        {
-                            int ret = MySqlHelper.ExecuteNonQuery(connString, str,
-                                finalList.ToArray());
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        MessageBox.Show(e.Message + "\r\n" + e.StackTrace);
-                    }
+					executeSqlQuery(str, finalList);
                     finalList.Clear();
                     builder = new StringBuilder(statement + " VALUES");
                     cnt = 0;
                 }
             }
-            try
-            {
-                if(finalList.Count != 0)
-                {
-                    builder.AppendFormat(");");
-                    string str1 = builder.ToString();
-                    int ret = MySqlHelper.ExecuteNonQuery(connString, str1,
-                        finalList.ToArray());
-                }
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message + "\r\n" + e.StackTrace);
-            }
-            listLocalValues.Clear();
+			if (finalList.Count != 0)
+			{
+				builder.AppendFormat(");");
+				string str1 = builder.ToString();
+				executeSqlQuery(str1, finalList);
+			}
+			listLocalValues.Clear();
         }
         public int count()
         {
