@@ -120,9 +120,9 @@ namespace TOC
 
 		private void btnServerSendData_Click(object sender, EventArgs e)
 		{
-            if (site != null && toc.db.connListner != null)
+            if (site != null && toc.db.listener() != null)
             {
-                toc.db.connListner.SendToAll(Encoding.UTF8.GetBytes(txtServerSendData.Text));
+                toc.db.listener().SendToAll(Encoding.UTF8.GetBytes(txtServerSendData.Text));
             }
 		}
 
@@ -185,7 +185,7 @@ namespace TOC
 			}
 			catch (System.Exception ex)
 			{
-				MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+				SC.Logger.exception(ex);
 			}
 			return null;
 		}

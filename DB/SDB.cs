@@ -10,6 +10,7 @@ using System.IO;
 using System.Data.SqlClient;
 using System.Data;
 using System.Threading;
+using SC;
 
 namespace DB
 {
@@ -20,15 +21,19 @@ namespace DB
         public BatchQuery addSiteRawDataQuery = new BatchQuery();
         public BatchQuery addSiteSensorDataQuery = new BatchQuery();
 
+		private static SC.Logger util = new SC.Logger();
+
         private static string previousSiteKey;
 		private string server;
 		private string user;
 		private string passwd;
 		private string dbname;
-		public SC.Server connListner;
-        private SC.ConnectionInfo connInfo;
+
+		private SC.ConnectionInfo connInfo;
+		private SC.Server connListner;
         public string connString;
         public List<Circle> lstCircles;
+
         bool bShutdown = false;
 		public SDB()
 		{
@@ -37,9 +42,11 @@ namespace DB
 		}
         public void read(string infoFile)
         {
+			Logger.info("Reading info file " + infoFile);
             XmlDocument xmlDoc = new XmlDocument();
             FileStream fs = new FileStream(infoFile, FileMode.Open, FileAccess.Read);
-            xmlDoc.Load(fs);
+			Logger.info("Loading XML Document");
+			xmlDoc.Load(fs);
             XmlNode infoNode = xmlDoc.GetElementsByTagName("info")[0];
             XmlNode databaseNode = infoNode.SelectSingleNode("Database");
             server = databaseNode.Attributes["Server"].Value;
@@ -51,8 +58,10 @@ namespace DB
             connInfo = new SC.ConnectionInfo();
             connInfo.read(connInfoNode);
             connect();
+			Logger.info("Loading sites");
             //lstCircles = Hierarchy.buildHierarchy("Data/circles");
             lstCircles = Hierarchy.buildHierarchyFromDB(this);
+			Logger.info("Loaded sites");
         }
         void runExecuteQueryThread()
         {
@@ -94,6 +103,7 @@ namespace DB
             }
             catch (Exception e)
             {
+				SC.Logger.exception(e);
             }
 			return id;
 	    }
@@ -111,6 +121,7 @@ namespace DB
             }
             catch (Exception e)
             {
+				SC.Logger.exception(e);
             }
        	}
 		void updateSiteData(int siteId, byte[] data)
@@ -227,7 +238,7 @@ namespace DB
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message + "\r\n" + e.StackTrace);
+				SC.Logger.exception(e);
             }
         }
         public void fillSiteInfo(UInt32 key, Site site)
@@ -255,7 +266,7 @@ namespace DB
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message + "\r\n" + e.StackTrace);
+				SC.Logger.exception(e);
             }
         }
 	}

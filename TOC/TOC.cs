@@ -89,11 +89,11 @@ namespace TOC
 
         private void TOC_FormClosed(object sender, FormClosedEventArgs e)
         {
-            if(db != null && db.connListner != null)
+            if(db != null && db.listener() != null)
             {
                 db.addSiteSensorDataQuery.executeInsert();
                 db.addSiteRawDataQuery.executeInsert();
-                db.connListner.shutDown();
+                db.listener().shutDown();
             }
         }
 

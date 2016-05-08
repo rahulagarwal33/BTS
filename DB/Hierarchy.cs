@@ -225,7 +225,7 @@ namespace DB
             }
             catch (System.Exception e)
             {
-                int k = 1;
+				SC.Logger.exception(e);
             }
             return lst;
         }

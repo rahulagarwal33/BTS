@@ -154,7 +154,7 @@ namespace TOC
                 }
                 catch(Exception e1)
                 {
-                      //MessageBox.Show( e1.Message + "\r\n" + e1.StackTrace);
+					SC.Logger.exception(e1);
                 }
                 int progress = (int)(cnt * 100.0 / listPO.Count);
                 ++cnt;

@@ -43,7 +43,7 @@ namespace DB
 			}
 			catch (Exception e)
 			{
-				MessageBox.Show(e.Message + "\r\n" + e.StackTrace);
+				SC.Logger.exception(e);
 			}
 		}
         public void executeUpdate()
