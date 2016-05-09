@@ -11,7 +11,7 @@ namespace DB
 		public event SensorDataHandler SensorData;
 		void parseFormat0(byte[] bytes, int dataStart, int dataEnd)
 		{
-			while(dataStart + 5 <= dataEnd)
+			while (dataStart + 5 <= dataEnd)
 			{
 				byte sensorid = bytes[dataStart];
 				float value = BitConverter.ToSingle(bytes, dataStart + 1);
@@ -27,24 +27,24 @@ namespace DB
 		}
 		public void parse(byte[] data)
 		{
-            if (data.Length > 0)
+			if (data.Length > 0)
 			{
-                byte format = data[0];
-				switch(format)
+				byte format = data[0];
+				switch (format)
 				{
 					case 0:
 						{
-                            parseFormat0(data, 1, data.Length);
+							parseFormat0(data, 1, data.Length);
 							break;
 						}
 					case 1:
 						{
-                            parseFormat1(data, 1, data.Length);
+							parseFormat1(data, 1, data.Length);
 							break;
 						}
 				}
 			}
 		}
-		
+
 	}
 }

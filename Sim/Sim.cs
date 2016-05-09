@@ -18,102 +18,102 @@ namespace Sim
 		{
 			InitializeComponent();
 			addDefaultSensors();
-            chkRandomFill.Checked = true;
-            string[] args = Environment.GetCommandLineArgs();
-            if (args.Length > 1)
-            {
-                string file = args[1];
-                connectToSite(file);
-            }
+			chkRandomFill.Checked = true;
+			string[] args = Environment.GetCommandLineArgs();
+			if (args.Length > 1)
+			{
+				string file = args[1];
+				connectToSite(file);
+			}
 		}
-        ~Sim()
-        {
-            site = null;
-        }
-        private void connectToSite(string siteInfoFile)
-        {
-            site = new DB.Site();
-            site.readSite(siteInfoFile);
-            SC.Connection conn = site.createConnection();
-            //conn.connect();
-            conn.Conncted += conn_Conncted;
-            conn.Disconnected += conn_Disconnected;
-            conn.Data += conn_Data;
-            SC.Server listener = site.createListener();
-            listener.Data += listener_Data;
-            listener.listen();
-        }
+		~Sim()
+		{
+			site = null;
+		}
+		private void connectToSite(string siteInfoFile)
+		{
+			site = new DB.Site();
+			site.readSite(siteInfoFile);
+			SC.Connection conn = site.createConnection();
+			//conn.connect();
+			conn.Conncted += conn_Conncted;
+			conn.Disconnected += conn_Disconnected;
+			conn.Data += conn_Data;
+			SC.Server listener = site.createListener();
+			listener.Data += listener_Data;
+			listener.listen();
+		}
 		private void connect_Click(object sender, EventArgs e)
 		{
-            connectToSite("site.xml");
+			connectToSite("site.xml");
 		}
 
 		void listener_Data(SC.StateObject s, byte[] data)
 		{
-            if(this.InvokeRequired)
-            {
-                BeginInvoke((Action<byte[]>)((byte[] d) =>
-                {
-                    serverReceivedData.Text += Encoding.UTF8.GetString(d) + "\r\n";
-                }), data);
-            }
-            else
-                serverReceivedData.Text += Encoding.UTF8.GetString(data) + "\r\n";
+			if (this.InvokeRequired)
+			{
+				BeginInvoke((Action<byte[]>)((byte[] d) =>
+				{
+					serverReceivedData.Text += Encoding.UTF8.GetString(d) + "\r\n";
+				}), data);
+			}
+			else
+				serverReceivedData.Text += Encoding.UTF8.GetString(data) + "\r\n";
 
-        }
+		}
 
 		void conn_Data(object sender, byte[] data)
 		{
-            if(this.InvokeRequired)
-            {
-                BeginInvoke((Action<byte[]>)((byte[] d) =>
-                {
-                    clientReceiveData.Text += Encoding.UTF8.GetString(d) + "\r\n";
-                }), data);
-            }
-            else
-                clientReceiveData.Text += Encoding.UTF8.GetString(data) + "\r\n";
+			if (this.InvokeRequired)
+			{
+				BeginInvoke((Action<byte[]>)((byte[] d) =>
+				{
+					clientReceiveData.Text += Encoding.UTF8.GetString(d) + "\r\n";
+				}), data);
+			}
+			else
+				clientReceiveData.Text += Encoding.UTF8.GetString(data) + "\r\n";
 		}
 
 		void conn_Disconnected(object sender, EventArgs e)
 		{
-            if (this.InvokeRequired)
-            {
-                BeginInvoke((Action)(() =>
-                {
-                    connectionStatus.Checked = false;
-                    connectionStatus.Text = "Disconnected";
-                }));
-            }
-            else
-            {
-                connectionStatus.Checked = false;
-                connectionStatus.Text = "Disconnected";
-            }
+			if (this.InvokeRequired)
+			{
+				BeginInvoke((Action)(() =>
+				{
+					connectionStatus.Checked = false;
+					connectionStatus.Text = "Disconnected";
+				}));
+			}
+			else
+			{
+				connectionStatus.Checked = false;
+				connectionStatus.Text = "Disconnected";
+			}
 		}
 
 		void conn_Conncted(object sender, EventArgs e)
 		{
-            if (this.InvokeRequired)
-            {
-                BeginInvoke((Action)(() =>
-                {
-                    connectionStatus.Checked = true;
-                    connectionStatus.Text = "Connected";
-                }));
-            }
-            else
-            {
-                connectionStatus.Checked = true;
-                connectionStatus.Text = "Connected";
-            }
+			if (this.InvokeRequired)
+			{
+				BeginInvoke((Action)(() =>
+				{
+					connectionStatus.Checked = true;
+					connectionStatus.Text = "Connected";
+				}));
+			}
+			else
+			{
+				connectionStatus.Checked = true;
+				connectionStatus.Text = "Connected";
+			}
 		}
 
 		private void sendClientData_Click(object sender, EventArgs e)
 		{
 			if (site != null)
 			{
-                site.conn.Send(Encoding.UTF8.GetBytes(clientSendData.Text), true);
+				site.conn.Send(Encoding.UTF8.GetBytes(clientSendData.Text), true);
 			}
 		}
 
@@ -125,16 +125,16 @@ namespace Sim
 		private void sendServerData_Click(object sender, EventArgs e)
 		{
 			if (site != null && site.listener != null)
-                site.listener.SendToAll(Encoding.UTF8.GetBytes(serverSendData.Text));
+				site.listener.SendToAll(Encoding.UTF8.GetBytes(serverSendData.Text));
 		}
 
-        private void Sim_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            if(site != null && site.listener != null)
-            {
-                site.listener.shutDown();
-            }
-        }
+		private void Sim_FormClosed(object sender, FormClosedEventArgs e)
+		{
+			if (site != null && site.listener != null)
+			{
+				site.listener.shutDown();
+			}
+		}
 
 		private void chkRandomFill_CheckedChanged(object sender, EventArgs e)
 		{
@@ -179,24 +179,24 @@ namespace Sim
 		{
 			if (chkRandomFill.Checked)
 				randomizeValues();
-            if (site != null && site.conn != null)
-            {
-                List<byte> bytes = buildAllSensorData();
-                bool invokeRequired = this.InvokeRequired;
-                site.conn.connect(false);
-                site.conn.Send(bytes.ToArray(), false);
-                site.conn.disconnect();
-            }
-        }
+			if (site != null && site.conn != null)
+			{
+				List<byte> bytes = buildAllSensorData();
+				bool invokeRequired = this.InvokeRequired;
+				site.conn.connect(false);
+				site.conn.Send(bytes.ToArray(), false);
+				site.conn.disconnect();
+			}
+		}
 
 		private void btnSendSensorData_Click(object sender, EventArgs e)
 		{
 			if (site != null && site.conn != null)
 			{
 				List<byte> bytes = buildAllSensorData();
-                site.conn.connect(false);
+				site.conn.connect(false);
 				site.conn.Send(bytes.ToArray(), false);
-                site.conn.disconnect();
+				site.conn.disconnect();
 			}
 		}
 	}

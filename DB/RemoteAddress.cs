@@ -5,8 +5,8 @@ using System.Text;
 
 namespace DB
 {
-    class RemoteAddress
-    {
-        private string ip { get; set; }
-    }
+	class RemoteAddress
+	{
+		private string ip { get; set; }
+	}
 }

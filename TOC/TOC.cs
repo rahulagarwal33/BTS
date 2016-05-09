@@ -14,7 +14,7 @@ namespace TOC
 	{
 		Hierarchy hierarchy;
 		PropertyWindow propWindow = new PropertyWindow();
-        LogView logView = new LogView();
+		LogView logView = new LogView();
 		MapView mapView = new MapView();
 		public Site siteWindow;
 		public DB.SDB db;
@@ -23,31 +23,31 @@ namespace TOC
 		{
 			InitializeComponent();
 			hierarchy = new Hierarchy(this);
-            siteWindow = new Site(this);
+			siteWindow = new Site(this);
 			db = new DB.SDB();
-            db.read("Data/toc.xml");
+			db.read("Data/toc.xml");
 			db.connect();
-            SC.Server listener = db.createListener();
-            listener.Data += listener_Data;
-            listener.listen();
+			SC.Server listener = db.createListener();
+			listener.Data += listener_Data;
+			listener.listen();
 
 			hierarchy.HideOnClose = true;
 			propWindow.HideOnClose = true;
-            logView.HideOnClose = true;
+			logView.HideOnClose = true;
 			mapView.HideOnClose = true;
 			hierarchy.initialize();
 			hierarchy.Show(pnlMain, DockState.DockLeft);
 			propWindow.Show(pnlMain, DockState.DockRight);
 			siteWindow.HideOnClose = true;
 			siteWindow.Show(pnlMain, DockState.Document);
-            logView.Show(pnlMain, DockState.DockBottom);
+			logView.Show(pnlMain, DockState.DockBottom);
 			mapView.Show(pnlMain, DockState.Document);
 		}
 
-        void listener_Data(SC.StateObject s, byte[] data)
-        {
-            
-        }
+		void listener_Data(SC.StateObject s, byte[] data)
+		{
+
+		}
 
 		private void propertyViewToolStripMenuItem_Click(object sender, EventArgs e)
 		{
@@ -74,35 +74,35 @@ namespace TOC
 			hierarchyToolStripMenuItem.Checked = !hierarchy.IsHidden;
 		}
 
-        private void logViewToolStripMenuItem_Paint(object sender, PaintEventArgs e)
-        {
-            logViewToolStripMenuItem.Checked = !logView.IsHidden;
-        }
+		private void logViewToolStripMenuItem_Paint(object sender, PaintEventArgs e)
+		{
+			logViewToolStripMenuItem.Checked = !logView.IsHidden;
+		}
 
-        private void logViewToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (logView.IsHidden)
-                logView.Show();
-            else
-                logView.Hide();
-        }
+		private void logViewToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			if (logView.IsHidden)
+				logView.Show();
+			else
+				logView.Hide();
+		}
 
-        private void TOC_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            if(db != null && db.connListner != null)
-            {
-                db.addSiteSensorDataQuery.executeInsert();
-                db.addSiteRawDataQuery.executeInsert();
-                db.connListner.shutDown();
-            }
-        }
+		private void TOC_FormClosed(object sender, FormClosedEventArgs e)
+		{
+			if (db != null && db.listener() != null)
+			{
+				db.addSiteSensorDataQuery.executeInsert();
+				db.addSiteRawDataQuery.executeInsert();
+				db.listener().shutDown();
+			}
+		}
 
-        private void timerStatus_Tick(object sender, EventArgs e)
-        {
-            if(db.listener() != null)
-            {
-                this.Text = "Active Connection: " + db.listener().countStates() + " Pending Queries1: "+ db.addSiteRawDataQuery.count() + " Pending Queries2: " + db.addSiteSensorDataQuery.count();
-            }
-        }
+		private void timerStatus_Tick(object sender, EventArgs e)
+		{
+			if (db.listener() != null)
+			{
+				this.Text = "Active Connection: " + db.listener().countStates() + " Pending Queries1: " + db.addSiteRawDataQuery.count() + " Pending Queries2: " + db.addSiteSensorDataQuery.count();
+			}
+		}
 	}
 }

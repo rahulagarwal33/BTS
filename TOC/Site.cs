@@ -14,96 +14,96 @@ namespace TOC
 {
 	public partial class Site : DockContent
 	{
-        private TOC toc;
-        private DB.Site site;
-        public DB.Site getSite() {return site;}
-        public void setSite(DB.Site value)
-        {
-            if (site != null)
-            {
-                if (site.conn != null)
-                {
-                    site.conn.Conncted -= conn_Conncted;
-                    site.conn.Disconnected -= conn_Disconnected;
-                    site.conn.Data -= conn_Data;
-                    site.UpdateData -= site_UpdateData;
-                    site.conn.disconnect();
-                }
-            }
-            site = value;
-            if (site != null)
-            {
-                site.conn = site.createConnection();
-                site.conn.Conncted += conn_Conncted;
-                site.conn.Disconnected += conn_Disconnected;
-                site.conn.Data += conn_Data;
-                site.UpdateData += site_UpdateData;
-                site.conn.connect();
-            }
-        }
-        public Site(TOC toc)
-        {
-            this.toc = toc;
-            InitializeComponent();
-        }
-        void site_UpdateData(byte[] data)
-        {
-            if(this.InvokeRequired)
-            {
-                BeginInvoke((Action<byte[]>)((d) =>
-                {
-                    txtServerReceiveData.Text += Encoding.UTF8.GetString(d) + "\r\n";
-                }), data);
-            }
-            else
-                txtServerReceiveData.Text += data + "\r\n";
-        }
-        void conn_Data(object sender, byte[] data)
-        {
-            if(this.InvokeRequired)
-            {
-                BeginInvoke((Action<byte[]>)((byte[] d) =>
-                {
-                    txtClientReceiveData.Text += Encoding.UTF8.GetString(d) + "\r\n";
-                }), data);
-            }
-            else
-                txtClientReceiveData.Text += Encoding.UTF8.GetString(data) + "\r\n";
-        }
+		private TOC toc;
+		private DB.Site site;
+		public DB.Site getSite() { return site; }
+		public void setSite(DB.Site value)
+		{
+			if (site != null)
+			{
+				if (site.conn != null)
+				{
+					site.conn.Conncted -= conn_Conncted;
+					site.conn.Disconnected -= conn_Disconnected;
+					site.conn.Data -= conn_Data;
+					site.UpdateData -= site_UpdateData;
+					site.conn.disconnect();
+				}
+			}
+			site = value;
+			if (site != null)
+			{
+				site.conn = site.createConnection();
+				site.conn.Conncted += conn_Conncted;
+				site.conn.Disconnected += conn_Disconnected;
+				site.conn.Data += conn_Data;
+				site.UpdateData += site_UpdateData;
+				site.conn.connect();
+			}
+		}
+		public Site(TOC toc)
+		{
+			this.toc = toc;
+			InitializeComponent();
+		}
+		void site_UpdateData(byte[] data)
+		{
+			if (this.InvokeRequired)
+			{
+				BeginInvoke((Action<byte[]>)((d) =>
+				{
+					txtServerReceiveData.Text += Encoding.UTF8.GetString(d) + "\r\n";
+				}), data);
+			}
+			else
+				txtServerReceiveData.Text += data + "\r\n";
+		}
+		void conn_Data(object sender, byte[] data)
+		{
+			if (this.InvokeRequired)
+			{
+				BeginInvoke((Action<byte[]>)((byte[] d) =>
+				{
+					txtClientReceiveData.Text += Encoding.UTF8.GetString(d) + "\r\n";
+				}), data);
+			}
+			else
+				txtClientReceiveData.Text += Encoding.UTF8.GetString(data) + "\r\n";
+		}
 
-        void conn_Disconnected(object sender, EventArgs e)
-        {
-            if(this.InvokeRequired)
-            {
-                BeginInvoke((Action)(() =>
-                {
-                    connectionStatus.Checked = false;
-                    connectionStatus.Text = "Disconnected";
-                }));
-            }
-            else
-            {
-                connectionStatus.Checked = false;
-                connectionStatus.Text = "Disconnected";
-            }
-        }
+		void conn_Disconnected(object sender, EventArgs e)
+		{
+			if (this.InvokeRequired)
+			{
+				BeginInvoke((Action)(() =>
+				{
+					connectionStatus.Checked = false;
+					connectionStatus.Text = "Disconnected";
+				}));
+			}
+			else
+			{
+				connectionStatus.Checked = false;
+				connectionStatus.Text = "Disconnected";
+			}
+		}
 
-        void conn_Conncted(object sender, EventArgs e)
-        {
-            if(this.InvokeRequired)
-            {
-                BeginInvoke((Action)(() =>
-                {
-                    connectionStatus.Checked = true;
-                    connectionStatus.Text = "Connected";
-                }));
-            }
-            else
-            {
-                connectionStatus.Checked = true;
-                connectionStatus.Text = "Connected";
-            }
-        }
+		void conn_Conncted(object sender, EventArgs e)
+		{
+			if (this.InvokeRequired)
+			{
+				BeginInvoke((Action)(() =>
+				{
+					connectionStatus.Checked = true;
+					connectionStatus.Text = "Connected";
+				}));
+			}
+			else
+			{
+				connectionStatus.Checked = true;
+				connectionStatus.Text = "Connected";
+			}
+		}
 
 		public Site()
 		{
@@ -112,28 +112,28 @@ namespace TOC
 
 		private void btnclientSendData_Click(object sender, EventArgs e)
 		{
-            if (site != null && site.conn != null)
-            {
-                site.conn.Send(Encoding.UTF8.GetBytes(txtClientSendData.Text), false);
-            }
+			if (site != null && site.conn != null)
+			{
+				site.conn.Send(Encoding.UTF8.GetBytes(txtClientSendData.Text), false);
+			}
 		}
 
 		private void btnServerSendData_Click(object sender, EventArgs e)
 		{
-            if (site != null && toc.db.connListner != null)
-            {
-                toc.db.connListner.SendToAll(Encoding.UTF8.GetBytes(txtServerSendData.Text));
-            }
+			if (site != null && toc.db.listener() != null)
+			{
+				toc.db.listener().SendToAll(Encoding.UTF8.GetBytes(txtServerSendData.Text));
+			}
 		}
 
-        private void btnConnect_Click(object sender, EventArgs e)
-        {
-            if (site != null)
-            {
-                SC.Connection conn = site.createConnection();
-                conn.connect();
-            }
-        }
+		private void btnConnect_Click(object sender, EventArgs e)
+		{
+			if (site != null)
+			{
+				SC.Connection conn = site.createConnection();
+				conn.connect();
+			}
+		}
 
 		void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
 		{
@@ -192,7 +192,7 @@ namespace TOC
 
 		void worker_DoWork(object sender, DoWorkEventArgs e)
 		{
-            List<POAddress> list = readPO("listpoll.csv");
+			List<POAddress> list = readPO("listpoll.csv");
 			int cnt = 0;
 			int lastProgress = 0;
 			foreach (POAddress add in list)
@@ -205,10 +205,10 @@ namespace TOC
 				site.addr.city = add.ssa;
 				site.addr.state = add.circle;
 				site.addr.pincode = add.pincode;
-                double lat = 0;
-                Double.TryParse(add.lat, out lat); site.addr.lattitude = lat;
-                double lng = 0;
-                Double.TryParse(add.lng, out lng); site.addr.longitude = lng;
+				double lat = 0;
+				Double.TryParse(add.lat, out lat); site.addr.lattitude = lat;
+				double lng = 0;
+				Double.TryParse(add.lng, out lng); site.addr.longitude = lng;
 				site.sdca = new DB.SDCA();
 				site.sdca.name = add.sdca;
 				site.sdca.addr = add.sdca;
@@ -235,15 +235,15 @@ namespace TOC
 			barProgress.Value = e.ProgressPercentage;
 		}
 
-        private void btnInsert_Click(object sender, EventArgs e)
-        {
-            BackgroundWorker worker = new BackgroundWorker();
-            worker.ProgressChanged += worker_ProgressChanged;
-            worker.DoWork += worker_DoWork;
-            worker.WorkerReportsProgress = true;
-            worker.RunWorkerCompleted += worker_RunWorkerCompleted;
-            worker.RunWorkerAsync(worker);
-        }
+		private void btnInsert_Click(object sender, EventArgs e)
+		{
+			BackgroundWorker worker = new BackgroundWorker();
+			worker.ProgressChanged += worker_ProgressChanged;
+			worker.DoWork += worker_DoWork;
+			worker.WorkerReportsProgress = true;
+			worker.RunWorkerCompleted += worker_RunWorkerCompleted;
+			worker.RunWorkerAsync(worker);
+		}
 
 	}
 }

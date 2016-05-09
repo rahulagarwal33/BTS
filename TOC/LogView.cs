@@ -10,11 +10,11 @@ using WeifenLuo.WinFormsUI.Docking;
 
 namespace TOC
 {
-    public partial class LogView : DockContent
-    {
-        public LogView()
-        {
-            InitializeComponent();
-        }
-    }
+	public partial class LogView : DockContent
+	{
+		public LogView()
+		{
+			InitializeComponent();
+		}
+	}
 }
