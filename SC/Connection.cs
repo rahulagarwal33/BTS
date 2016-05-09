@@ -17,23 +17,23 @@ namespace SC
 		public const int BufferSize = 256;
 		// Receive buffer.
 		public byte[] buffer = new byte[BufferSize];
-        public TCPMessage msg;
+		public TCPMessage msg;
 		//Authenticated status
 		public bool authenticated = false;
-        public Object obj;
-        public DateTime lastDataReceived;
-        public StateObject()
-        {
-            msg = new TCPMessage(this);
-            lastDataReceived = DateTime.Now;
-        }
+		public Object obj;
+		public DateTime lastDataReceived;
+		public StateObject()
+		{
+			msg = new TCPMessage(this);
+			lastDataReceived = DateTime.Now;
+		}
 	}
 	public class Connection
 	{
 		public delegate void ConnectionEventHandler(object sender, EventArgs e);
 		public delegate void DataHandler(object sender, byte[] data);
-        private static ManualResetEvent connectedEvent = new ManualResetEvent(false);
-        public ConnectionInfo connInfo { get; set; }
+		private static ManualResetEvent connectedEvent = new ManualResetEvent(false);
+		public ConnectionInfo connInfo { get; set; }
 		public enum Status
 		{
 			CONNECTED,
@@ -46,15 +46,15 @@ namespace SC
 		{
 			site = site_;
 		}
-        ~Connection()
-        {
-            socketState = null;
-        }
+		~Connection()
+		{
+			socketState = null;
+		}
 		void connectByTCP(bool bAsync)
 		{
 			try
 			{
-                connectedEvent.Reset();
+				connectedEvent.Reset();
 				// Establish the remote endpoint for the socket.
 				// The name of the 
 				// remote device is "host.contoso.com".
@@ -67,25 +67,25 @@ namespace SC
 					SocketType.Stream, ProtocolType.Tcp);
 
 				socketState = new StateObject();
-                socketState.msg.MessageComplete += msg_MessageComplete;
+				socketState.msg.MessageComplete += msg_MessageComplete;
 				// Connect to the remote endpoint.
 				client.BeginConnect(remoteEP,
 					new AsyncCallback(ConnectCallback), client);
-                if (bAsync == false)
-                {
-                    connectedEvent.WaitOne(TimeSpan.FromMinutes(5));
-                }
+				if (bAsync == false)
+				{
+					connectedEvent.WaitOne(TimeSpan.FromMinutes(5));
+				}
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine(e.ToString());
+				SC.Logger.exception(e);
 			}
-        }
+		}
 
-        void msg_MessageComplete(StateObject stOb, byte[] msg)
-        {
-            Data(this, msg);
-        }
+		void msg_MessageComplete(StateObject stOb, byte[] msg)
+		{
+			Data(this, msg);
+		}
 		private void ConnectCallback(IAsyncResult ar)
 		{
 			try
@@ -96,14 +96,14 @@ namespace SC
 				// Complete the connection.
 				client.EndConnect(ar);
 
-                socketState.workSocket = client;
-                Conncted(this, null);
-                Console.WriteLine("Socket connected to {0}",
+				socketState.workSocket = client;
+				Conncted(this, null);
+				Console.WriteLine("Socket connected to {0}",
 					client.RemoteEndPoint.ToString());
 				//send the password
 				Send(Encoding.UTF8.GetBytes(connInfo.remoteKey), false);
-                Send(Encoding.UTF8.GetBytes(connInfo.ownID), false);
-                connectedEvent.Set();
+				Send(Encoding.UTF8.GetBytes(connInfo.ownID), false);
+				connectedEvent.Set();
 				//start receiving data
 				client.BeginReceive(socketState.buffer, 0, StateObject.BufferSize, 0,
 				new AsyncCallback(ReceiveCallback), socketState);
@@ -129,8 +129,8 @@ namespace SC
 
 				if (bytesRead > 0)
 				{
-                    state.lastDataReceived = DateTime.Now;
-                    state.msg.addBytes(state.buffer, 0, bytesRead);
+					state.lastDataReceived = DateTime.Now;
+					state.msg.addBytes(state.buffer, 0, bytesRead);
 
 					// Get the rest of the data.
 					client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
@@ -138,7 +138,7 @@ namespace SC
 				}
 				else
 				{
-                    disconnect();
+					disconnect();
 				}
 			}
 			catch (Exception e)
@@ -150,6 +150,7 @@ namespace SC
 		public void Send(byte[] data, bool bAsync)
 		{
 			// Convert the string data to byte data using ASCII encoding.
+<<<<<<< HEAD
             TCPMessage msg = TCPMessage.wrap(data);
             try
             {
@@ -168,6 +169,26 @@ namespace SC
             {
 				SC.Logger.exception(e);
             }
+=======
+			TCPMessage msg = TCPMessage.wrap(data);
+			try
+			{
+				if (bAsync)
+				{
+					// Begin sending the data to the remote device.
+					socketState.workSocket.BeginSend(msg.bytes.ToArray(), 0, msg.bytes.Count, 0,
+						new AsyncCallback(SendCallback), socketState.workSocket);
+				}
+				else
+				{
+					socketState.workSocket.Send(msg.bytes.ToArray(), 0, msg.bytes.Count, 0);
+				}
+			}
+			catch (Exception e)
+			{
+				SC.Logger.exception(e);
+			}
+>>>>>>> origin/master
 		}
 
 		private void SendCallback(IAsyncResult ar)
@@ -202,17 +223,17 @@ namespace SC
 				StateObject s = socketState;
 				socketState = null;
 				Disconnected(this, null);
-                if(s.workSocket != null)
-                {
-                    s.workSocket.Shutdown(SocketShutdown.Both);
-                    s.workSocket.Close();
-                    s.workSocket = null;
-                }
-                s = null;
+				if (s.workSocket != null)
+				{
+					s.workSocket.Shutdown(SocketShutdown.Both);
+					s.workSocket.Close();
+					s.workSocket = null;
+				}
+				s = null;
 			}
 		}
 
-        public event ConnectionEventHandler Conncted;
+		public event ConnectionEventHandler Conncted;
 		public event ConnectionEventHandler Disconnected;
 		public event DataHandler Data;
 

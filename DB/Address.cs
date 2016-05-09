@@ -18,59 +18,59 @@ namespace DB
 		public double lattitude { get; set; }
 		public double longitude { get; set; }
 
-        public void write(XmlNode node)
-        {
-            XmlDocument xmlDoc = node.OwnerDocument;
-            {
-                XmlElement elem = xmlDoc.CreateElement("HouseNo"); 
-                XmlAttribute attrib = xmlDoc.CreateAttribute("Value"); 
-                attrib.Value = houseno;
-                elem.Attributes.Append(attrib);
-                node.AppendChild(elem);
-            }
-            {
-                XmlElement elem = xmlDoc.CreateElement("Line1");
-                XmlAttribute attrib = xmlDoc.CreateAttribute("Value");
-                attrib.Value = addrLine1;
-                elem.Attributes.Append(attrib);
-                node.AppendChild(elem);
-            }
-            {
-                XmlElement elem = xmlDoc.CreateElement("Line2");
-                XmlAttribute attrib = xmlDoc.CreateAttribute("Value");
-                attrib.Value = addrLine2;
-                elem.Attributes.Append(attrib);
-                node.AppendChild(elem);
-            }
-            {
-                XmlElement elem = xmlDoc.CreateElement("Landmark");
-                XmlAttribute attrib = xmlDoc.CreateAttribute("Value");
-                attrib.Value = lndmark;
-                elem.Attributes.Append(attrib);
-                node.AppendChild(elem);
-            }
-            {
-                XmlElement elem = xmlDoc.CreateElement("PIN");
-                XmlAttribute attrib = xmlDoc.CreateAttribute("Value");
-                attrib.Value = pincode;
-                elem.Attributes.Append(attrib);
-                node.AppendChild(elem);
-            }
-            {
-                XmlElement elem = xmlDoc.CreateElement("Latitude");
-                XmlAttribute attrib = xmlDoc.CreateAttribute("Value");
-                attrib.Value = lattitude.ToString();
-                elem.Attributes.Append(attrib);
-                node.AppendChild(elem);
-            }
-            {
-                XmlElement elem = xmlDoc.CreateElement("Longitude");
-                XmlAttribute attrib = xmlDoc.CreateAttribute("Value");
-                attrib.Value = longitude.ToString();
-                elem.Attributes.Append(attrib);
-                node.AppendChild(elem);
-            }
-        }
+		public void write(XmlNode node)
+		{
+			XmlDocument xmlDoc = node.OwnerDocument;
+			{
+				XmlElement elem = xmlDoc.CreateElement("HouseNo");
+				XmlAttribute attrib = xmlDoc.CreateAttribute("Value");
+				attrib.Value = houseno;
+				elem.Attributes.Append(attrib);
+				node.AppendChild(elem);
+			}
+			{
+				XmlElement elem = xmlDoc.CreateElement("Line1");
+				XmlAttribute attrib = xmlDoc.CreateAttribute("Value");
+				attrib.Value = addrLine1;
+				elem.Attributes.Append(attrib);
+				node.AppendChild(elem);
+			}
+			{
+				XmlElement elem = xmlDoc.CreateElement("Line2");
+				XmlAttribute attrib = xmlDoc.CreateAttribute("Value");
+				attrib.Value = addrLine2;
+				elem.Attributes.Append(attrib);
+				node.AppendChild(elem);
+			}
+			{
+				XmlElement elem = xmlDoc.CreateElement("Landmark");
+				XmlAttribute attrib = xmlDoc.CreateAttribute("Value");
+				attrib.Value = lndmark;
+				elem.Attributes.Append(attrib);
+				node.AppendChild(elem);
+			}
+			{
+				XmlElement elem = xmlDoc.CreateElement("PIN");
+				XmlAttribute attrib = xmlDoc.CreateAttribute("Value");
+				attrib.Value = pincode;
+				elem.Attributes.Append(attrib);
+				node.AppendChild(elem);
+			}
+			{
+				XmlElement elem = xmlDoc.CreateElement("Latitude");
+				XmlAttribute attrib = xmlDoc.CreateAttribute("Value");
+				attrib.Value = lattitude.ToString();
+				elem.Attributes.Append(attrib);
+				node.AppendChild(elem);
+			}
+			{
+				XmlElement elem = xmlDoc.CreateElement("Longitude");
+				XmlAttribute attrib = xmlDoc.CreateAttribute("Value");
+				attrib.Value = longitude.ToString();
+				elem.Attributes.Append(attrib);
+				node.AppendChild(elem);
+			}
+		}
 		public void read(XmlNode node)
 		{
 			houseno = node.SelectSingleNode("HouseNo").Attributes["Value"].Value;
