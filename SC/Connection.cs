@@ -150,26 +150,6 @@ namespace SC
 		public void Send(byte[] data, bool bAsync)
 		{
 			// Convert the string data to byte data using ASCII encoding.
-<<<<<<< HEAD
-            TCPMessage msg = TCPMessage.wrap(data);
-            try
-            {
-                if (bAsync)
-                {
-                    // Begin sending the data to the remote device.
-                    socketState.workSocket.BeginSend(msg.bytes.ToArray(), 0, msg.bytes.Count, 0,
-                        new AsyncCallback(SendCallback), socketState.workSocket);
-                }
-                else
-                {
-                    socketState.workSocket.Send(msg.bytes.ToArray(), 0, msg.bytes.Count, 0);
-                }
-            }
-            catch (Exception e)
-            {
-				SC.Logger.exception(e);
-            }
-=======
 			TCPMessage msg = TCPMessage.wrap(data);
 			try
 			{
@@ -188,7 +168,6 @@ namespace SC
 			{
 				SC.Logger.exception(e);
 			}
->>>>>>> origin/master
 		}
 
 		private void SendCallback(IAsyncResult ar)

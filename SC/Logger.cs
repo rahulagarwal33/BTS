@@ -3,55 +3,78 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using log4net;
-using System.Windows.Forms;
 using log4net.Config;
+using System.Runtime.CompilerServices;
+using System.Diagnostics;
+using System.Reflection;
 namespace SC
 {
 	public class Logger
 	{
-		private static readonly ILog logger = LogManager.GetLogger(typeof(Logger));
-		public Logger()
+		private static ILog log = null;
+		static Logger()
 		{
-			XmlConfigurator.Configure(new System.IO.FileInfo("logging.config"));
-		}
-		public static void info(Object o, Exception e = null)
-		{
-			if (e != null)
-				logger.Info(o, e);
-			else
-				logger.Info(o);
-		}
-		public static void debug(Object o, Exception e = null)
-		{
-			if (e != null)
-				logger.Debug(o, e);
-			else
-				logger.Debug(o);
-		}
-		public static void error(Object o, Exception e = null)
-		{
-			if (e != null)
-				logger.Error(o, e);
-			else
-				logger.Error(o);
-		}
-		public static void fatal(Object o, Exception e = null)
-		{
-			if (e != null)
-				logger.Fatal(o, e);
-			else
-				logger.Fatal(o);
-		}
-		public static void warn(Object o, Exception e = null)
-		{
-			if (e != null)
-				logger.Warn(o, e);
-			else
-				logger.Warn(o);
+			log = LogManager.GetLogger(typeof(Logger));
+			XmlConfigurator.Configure(new System.IO.FileInfo("log.config"));
 		}
 		public static void exception(Exception e)
 		{
-			logger.Error("Exception", e);
+			error(e, e);
+		}
+		public static void info(object o, Exception e = null, string membername="")
+		{
+			StackTrace trace = new StackTrace(1);
+			StackFrame frame = trace.GetFrame(0);
+			MethodBase method = frame.GetMethod();
+			string caller = method.ReflectedType.FullName + "." + method.Name + ":" + frame.GetFileLineNumber();
+			if (e != null)
+				log.Info(caller + ":" + o, e);
+			else
+				log.Info(caller + ":" + o);
+		}
+		public static void warn(object o, Exception e = null)
+		{
+			StackTrace trace = new StackTrace(1);
+			StackFrame frame = trace.GetFrame(0);
+			MethodBase method = frame.GetMethod();
+			string caller = method.ReflectedType.FullName + "." + method.Name + ":" + frame.GetFileLineNumber();
+			if (e != null)
+				log.Warn(caller + ":" + o, e);
+			else
+				log.Warn(caller + ":" + o);
+		}
+		public static void debug(object o, Exception e = null)
+		{
+			StackTrace trace = new StackTrace(1);
+			StackFrame frame = trace.GetFrame(0);
+			MethodBase method = frame.GetMethod();
+			string caller = method.ReflectedType.FullName + "." + method.Name + ":" + frame.GetFileLineNumber();
+			if (e != null)
+				log.Debug(caller + ":" + o, e);
+			else
+				log.Debug(caller + ":" + o);
+		}
+		public static void error(object o, Exception e = null)
+		{
+			StackTrace trace = new StackTrace(1);
+			StackFrame frame = trace.GetFrame(0);
+			MethodBase method = frame.GetMethod();
+			string caller = method.ReflectedType.FullName + "." + method.Name + ":" + frame.GetFileLineNumber();
+			if (e != null)
+				log.Error(caller + ":" + o, e);
+			else
+				log.Error(caller + ":" + o);
+		}
+		public static void fatal(object o, Exception e = null)
+		{
+			StackTrace trace = new StackTrace(1);
+			StackFrame frame = trace.GetFrame(0);
+			MethodBase method = frame.GetMethod();
+			string caller = method.ReflectedType.FullName + "." + method.Name + ":" + frame.GetFileLineNumber();
+			if (e != null)
+				log.Fatal(caller + ":" + o, e);
+			else
+				log.Fatal(caller + ":" + o);
 		}
 	}
 }
