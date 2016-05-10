@@ -48,7 +48,6 @@
     <Compile Include="Address.cs" />
     <Compile Include="BatchQuery.cs" />
     <Compile Include="Crc32.cs" />
-    <Compile Include="DataParser.cs" />
     <Compile Include="Hierarchy.cs" />
     <Compile Include="PropHolder.cs" />
     <Compile Include="SDB.cs" />

@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using System.Threading;
+using SC;
 
 namespace Sim
 {
@@ -24,17 +25,26 @@ namespace Sim
 		}
 		private List<byte> buildAllSensorData()
 		{
+/*
 			List<byte> bytes = new List<byte>();
 
 			bytes.Add(0);	//format header
 			for (int i = 0; i < 10; ++i)
 			{
-				bytes.Add((byte)i);
+				bytes.Add((byte)i);	//sensor id
 				float val = (float)(25 + 50 * rnd.NextDouble());
-				byte[] valBytes = BitConverter.GetBytes(val);
+				byte[] valBytes = BitConverter.GetBytes(val);//value
 				float v = BitConverter.ToSingle(valBytes, 0);
 				bytes.AddRange(valBytes);
 			}
+			return bytes;
+*/
+			DataBuilder builder = DataBuilder.Builder(DataFormat.KEY_VALUE);
+			for (int i = 0; i < 10; ++i)
+			{
+				builder.addSensorData(i, (float)(25 + 50 * rnd.NextDouble()));
+			}
+			List<byte> bytes = builder.getData();
 			return bytes;
 		}
 

@@ -130,7 +130,7 @@ namespace DB
 			}
 			//parse this data into parts depending on the format of the data
 			List<Tuple<int, float>> lst = new List<Tuple<int, float>>();
-			DataParser parser = new DataParser();
+			SC.DataParser parser = new SC.DataParser();
 			parser.SensorData += (int sensorId, float value) =>
 			{
 				lst.Add(new Tuple<int, float>(sensorId, value));
